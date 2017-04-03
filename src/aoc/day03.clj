@@ -50,7 +50,7 @@
   (count-possible (read-triangles "resources/triangles.txt")))
 
 (defn transpose
-  {:doc  "Transpose the given matrix."
+  {:doc  "Transpose the given NxN matrix."
    :test (fn []
            (is= (transpose [[1 2] [3 4]]) [[1 3] [2 4]])
            (is= (transpose [[1 2 3] [4 5 6] [7 8 9]]) [[1 4 7] [2 5 8] [3 6 9]]))}
@@ -80,12 +80,10 @@
                  [401 402 403]
                  [601 602 603]]))}
   [triangles]
-  (letfn [(iter [src dest]
-            (if (empty? src)
-              dest
-              (iter (drop 3 src)
-                    (apply conj dest (transpose (take 3 src))))))]
-    (iter triangles [])))
+  (->> triangles
+       (partition 3)
+       (map transpose)
+       (mapcat identity)))
 
 (defn day03-task-b
   {:doc  "Solve task B."
