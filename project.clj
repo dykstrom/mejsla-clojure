@@ -4,6 +4,7 @@
   :license {:name "GPLv3"
             :url "https://www.gnu.org/licenses/gpl-3.0.en.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [ysera "1.0.0"]]
+                 [ysera "1.0.0"]
+                 [digest "1.4.5"]]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
