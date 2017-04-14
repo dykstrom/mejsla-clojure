@@ -47,14 +47,16 @@
   (make-pw-a "ffykfhsq"))
 
 (defn pos-char
-  {:test #(do
+  {:doc  "Extract the position and password character from hash."
+   :test #(do
             (is= (pos-char "1234567") [6 \7]))}
-  [coll]
-  (println coll)
-  [(- (int (nth coll 5)) (int \0)) (nth coll 6)])
+  [hash]
+  (println hash)
+  [(- (int (nth hash 5)) (int \0)) (nth hash 6)])
 
 (defn valid-pos?
-  {:test #(do
+  {:doc  "Return true if the position of pc is valid."
+   :test #(do
             (is (valid-pos? [0 \8]))
             (is (valid-pos? [7 \e]))
             (is-not (valid-pos? [8 \1])))}
@@ -62,7 +64,9 @@
   (< (first pc) 8))
 
 (defn valid-pos-chars
-  {:test #(do
+  {:doc  "Return a sequence of valid position-character vectors extracted
+  from the given sequence of hashes."
+   :test #(do
             (is= (valid-pos-chars ["0000015" "00000a6"]) [[1 \5]]))}
   [hashes]
   (->> hashes
@@ -70,18 +74,20 @@
        (filter valid-pos?)))
 
 (defn find-chars
-  ;  {:test #(do
-  ;            (is= (find-chars "abc" 2) {1 \5 4 \e}))}
-  [door-id num]
-  (letfn [(iter [s res]
-            (if (= (count res) num)
-              res
-              (let [[pos char] (first s)]
-                (recur (rest s) (merge {pos char} res)))))]
-    (iter (valid-pos-chars (pw-hashes door-id)) {})))
+  {:doc "Return a map of the num first valid position-characters found in hashes."
+   :test #(do
+            (is= (find-chars 3 ["00000c6" "000006a" "0000051" "0000063" "0000025" "0000047"])
+                 {2 \5 5 \1 6 \a}))}
+  [num hashes]
+  (->> (valid-pos-chars hashes)
+       (reduce (fn [acc [pos char]]
+                 (if (= (count acc) num) (reduced acc) (merge {pos char} acc)))
+               {})))
 
 (defn map-to-str
-  {:test #(do
+  {:doc "Convert a map of position-character entries to a string with each character
+  in the correct position."
+   :test #(do
             (is= (map-to-str {1 \b 3 \d 5 \f 7 \h 0 \a 2 \c 4 \e 6 \g}) "abcdefgh"))}
   [m]
   (apply str (map val (sort m))))
@@ -90,7 +96,9 @@
   ;  {:test #(do
   ;            (is= (make-pw-b "abc") "05ace8e3"))}
   [door-id]
-  (map-to-str (find-chars door-id 8)))
+  (->> (pw-hashes door-id)
+       (find-chars 8)
+       (map-to-str)))
 
 (defn day05-task-b
   {:doc  "Solve task B."
