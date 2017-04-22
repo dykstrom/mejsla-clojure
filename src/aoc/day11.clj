@@ -1,5 +1,10 @@
 (ns aoc.day11
-  (:require [ysera.test :refer [is is-not is=]]))
+  (:require [ysera.test :refer [is is-not is=]])
+  (:require [clojure.data.priority-map :refer [priority-map]])
+  (:require [profile.core :refer :all]))
+
+; https://github.com/clojure/data.priority-map
+; https://github.com/thunknyc/profile
 
 (def initial-state-example
   {:lig 3
@@ -9,11 +14,16 @@
 (def initial-state-puzzle-a
   {:com 3 :cum 3 :plm 3 :rum 3
    :cog 2 :cug 2 :plg 2 :rug 2
-   :prg 1 :prm 1 :ele 1})
+   :prm 1 :prg 1 :ele 1})
+
+(def initial-state-puzzle-b
+  {:com 3 :cum 3 :plm 3 :rum 3
+   :cog 2 :cug 2 :plg 2 :rug 2
+   :dim 1 :dig 1 :elm 1 :elg 1 :prm 1 :prg 1 :ele 1})
 
 ; Maps micro chips to generators
 (def chip-to-generator
-  (hash-map :com :cog :cum :cug :hym :hyg :lim :lig :plm :plg :prm :prg :rum :rug))
+  (hash-map :com :cog :cum :cug :dim :dig :elm :elg :hym :hyg :lim :lig :plm :plg :prm :prg :rum :rug))
 
 (def all-chips
   (apply hash-set (keys chip-to-generator)))
@@ -104,16 +114,16 @@
   [floor state]
   (let [items-on-floor (on-floor floor state)
         chips-on-floor (filter chip? items-on-floor)
-        required-generators (generators chips-on-floor)
-        generators-on-floor (filter generator? items-on-floor)]
-    (or (empty? generators-on-floor)
-        (every? (set generators-on-floor) required-generators))))
+        required-generators (generators chips-on-floor)]
+    (or (not-any? generator? items-on-floor)
+        (every? (set items-on-floor) required-generators))))
 
 (defn safe?
   {:doc  "Returns true if all floors are safe in the given state."
    :test #(do
             (is (safe? initial-state-example))
             (is (safe? initial-state-puzzle-a))
+            (is (safe? initial-state-puzzle-b))
             (is-not (safe? {:com 1 :plg 1 :cog 2 :plm 3})))}
   [state]
   (every? #(floor-safe? % state) [1 2 3 4]))
@@ -127,13 +137,8 @@
   [state]
   (every? #(= (val %) 4) state))
 
-(defn get-to-floors
-  {:doc  "Return the possible floors to go to from the given floor."
-   :test #(do
-            (is= (get-to-floors 1) [2])
-            (is= (get-to-floors 2) [1 3]))}
-  [from-floor]
-  (nth [[:not-used] [2] [1 3] [2 4] [3]] from-floor))
+; Maps a from-floor to a vector of to-floors
+(def floors [[:not-used] [2] [1 3] [2 4] [3]])
 
 (defn combinations
   {:doc "Return all possible combinations of floors, and one or two items."}
@@ -162,7 +167,7 @@
             )}
   [state]
   (let [from-floor (:ele state)
-        to-floors (get-to-floors from-floor)
+        to-floors (nth floors from-floor)
         items (filter #(not (elevator? %)) (on-floor from-floor state))
         moves (combinations to-floors items)]
     (distinct moves)))
@@ -171,8 +176,7 @@
   {:doc  "Return a sequence of all safe moves, given state."
    :test #(do
             (is= (safe-moves {:plg 1 :com 2 :ele 2}) [{:floor 3 :items #{:com :ele}}])
-            (is= (safe-moves initial-state-example) [{:floor 2 :items #{:hym :ele}}])
-            )}
+            (is= (safe-moves initial-state-example) [{:floor 2 :items #{:hym :ele}}]))}
   [state]
   (filter (fn [move] (safe? (make-move move state))) (get-moves state)))
 
@@ -218,12 +222,12 @@
   [initial-state]
   (let [decorated-state {:state initial-state :parent nil}]
     (->> (iterate inc 0)
-         (map (fn [max-depth] (do (println "md:" max-depth) (solve-dfs 0 max-depth decorated-state))))
+         (map (fn [max-depth] (solve-dfs 0 max-depth decorated-state)))
          (filter some?)
          (first))))
 
 (defn heuristic
-  {:doc "Heuristic function for the a-start search."
+  {:doc  "Heuristic function for the a-star search."
    :test #(do
             (is= (heuristic {:com 4 :cog 3 :ele 3}) 1)
             (is= (heuristic initial-state-example) 9))}
@@ -233,37 +237,41 @@
        (map #(- 4 (val %)))
        (reduce +)))
 
+(defn a-star-iter
+  [frontier explored]
+  ;  (println "frontier:" (count frontier) "explored:" (count explored))
+  (let [{state :state cost :cost} (first (peek frontier))]
+    (if (goal? state)
+      cost
+      (let [prio-states
+            (->> (get-moves state)
+                 (map #(make-move % state))
+                 (filter safe?)
+                 (filter #(not (contains? explored %)))
+                 (map (fn [ns] {:state ns :cost (inc cost)}))
+                 (map (fn [cs] [cs (+ cost (heuristic (:state cs)))])))]
+        (recur (into (pop frontier) prio-states) (conj explored state)))
+      )))
+
 (defn solve-a-star
   {:doc "Solve puzzle using a-star search."}
   [initial-state]
-  (let [decorated-state {:state initial-state :parent nil :cost 0}]
-  ))
+  (let [decorated-state {:state initial-state :cost 0}]
+    (a-star-iter (priority-map decorated-state (heuristic (:state decorated-state))) #{})))
 
 (defn solve
   {:test #(do
-            ;            (is= (solve initial-state-example) 11)
+            (is= (solve initial-state-example) 11)
             (is= (solve {:lig 4 :lim 3 :ele 3}) 1))}
   [initial-state]
   ;(solve-bfs [{:state initial-state :parent nil}] #{})
-  (solve-ids initial-state)
-  )
+  ;(solve-ids initial-state)
+  (solve-a-star initial-state))
+
+;(profile-vars floor-safe? safe? make-move)
 
 ;(time (solve initial-state-example))
+;(time (profile {} (solve initial-state-example)))
 ;(time (solve initial-state-puzzle-a))
-
-
-
-
-
-
-
-
-
-
-
-
-(defn day11-puzzle-a
-  ;  {:doc  "Solve puzzle A."
-  ;  }
-  []
-  [])
+;(time (profile {} (solve initial-state-puzzle-a)))
+;(time (solve initial-state-puzzle-b))

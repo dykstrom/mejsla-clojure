@@ -3,6 +3,8 @@
   (:require [ysera.test :refer [is is-not is=]])
   (:require [digest]))
 
+; https://github.com/tebeka/clj-digest
+
 (defn pw-hash?
   {:doc  "Return true if the given MD5 hash represents a password char."
    :test #(do
