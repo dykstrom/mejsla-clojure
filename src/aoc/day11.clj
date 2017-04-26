@@ -237,6 +237,23 @@
        (map #(- 4 (val %)))
        (reduce +)))
 
+(defn simple-state
+  {:doc "Create a simple state from the full state, where states that are
+  functionally equal result in the same simple state."
+   :test #(do
+            (is= (simple-state {:ele 1 :com 1 :cog 1}) [[1] [1 1]])
+            (is= (simple-state {:ele 1 :com 2 :cog 1}) [[1] [2 1]])
+            (is= (simple-state {:ele 1 :com 2 :cog 1 :hym 1 :hyg 2}) [[1] [1 2] [2 1]])
+            (is= (simple-state {:ele 1 :com 1 :cog 2 :hym 2 :hyg 1}) [[1] [1 2] [2 1]])
+            (is= (simple-state {:ele 1 :com 2 :cog 1 :hym 2 :hyg 1}) [[1] [2 1] [2 1]])
+            )}
+  [state]
+  (let [elevator (:ele state)
+        chips (filter #(chip? (key %)) state)
+        generator-floors (map #(get state (generator (key %))) chips)
+        vectors (map vector (map val chips) generator-floors)]
+    (sort (apply conj [[elevator]] vectors))))
+
 (defn a-star-iter
   [frontier explored]
   ;  (println "frontier:" (count frontier) "explored:" (count explored))
@@ -247,10 +264,10 @@
             (->> (get-moves state)
                  (map #(make-move % state))
                  (filter safe?)
-                 (filter #(not (contains? explored %)))
+                 (filter #(not (contains? explored (simple-state %))))
                  (map (fn [ns] {:state ns :cost (inc cost)}))
                  (map (fn [cs] [cs (+ cost (heuristic (:state cs)))])))]
-        (recur (into (pop frontier) prio-states) (conj explored state)))
+        (recur (into (pop frontier) prio-states) (conj explored (simple-state state))))
       )))
 
 (defn solve-a-star
