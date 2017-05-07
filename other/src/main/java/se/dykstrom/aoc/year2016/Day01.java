@@ -1,5 +1,6 @@
 package se.dykstrom.aoc.year2016;
 
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static java.lang.Math.abs;
