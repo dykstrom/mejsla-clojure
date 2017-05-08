@@ -5,22 +5,25 @@
 ;; State consists of registers a, b, c, and d, and a program counter p
 (def initial-state {:a 0 :b 0 :c 0 :d 0 :p 0})
 
-(defn updated
-  [state key value]
-  (assoc state key val))
-
 (defn inc
+  {:test #(do
+            (is= (inc {:a 0 :b 0} :a) {:a 1 :b 0}))}
   [state register]
-  (updated state register (+ 1 (get state register))))
+  (assoc state register (+ (get state register) 1)))
 
 (defn dec
+  {:test #(do
+            (is= (dec {:a 5 :b 3} :b) {:a 5 :b 2}))}
   [state register]
-  (updated state register (- 1 (get state register))))
+  (assoc state register (- (get state register) 1)))
 
 (defn cpy
+  {:test #(do
+            (is= (cpy {:a 1 :b 2 :c 3} 4 :b) {:a 1 :b 4 :c 3})
+            (is= (cpy {:a 1 :b 2 :c 3} :a :b) {:a 1 :b 1 :c 3}))}
   [state source dest]
   (let [value (if (integer? source) source (get state source))]
-    (updated state dest value)))
+    (assoc state dest value)))
 
 (defn jnz
   [state source offset]
@@ -29,7 +32,7 @@
       state
       ;; The -1 is because the PC has been incremented between
       ;; reading and executing the instruction
-      (updated state :p (+ (get state :p) offset -1)))))
+      (assoc state :p (+ (get state :p) offset -1)))))
 
 (defn read-instruction
   [state instructions]
@@ -87,6 +90,6 @@
                                          [dec :c]
                                          [jnz :c -5]]))
 
-(read-increment-execute initial-state '[[cpy 41 :a]])
+;; (read-increment-execute initial-state '[[cpy 41 :a]])
 ;; (solve-example)
 ;; (solve-puzzle-a)
