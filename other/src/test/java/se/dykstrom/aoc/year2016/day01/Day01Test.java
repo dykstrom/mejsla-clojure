@@ -1,4 +1,4 @@
-package se.dykstrom.aoc.year2016;
+package se.dykstrom.aoc.year2016.day01;
 
 import org.junit.Test;
 
@@ -7,10 +7,10 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static se.dykstrom.aoc.year2016.Day01.distance;
-import static se.dykstrom.aoc.year2016.Day01.distanceFromFirstRevisitedPosition;
+import static se.dykstrom.aoc.year2016.day01.Day01.distance;
+import static se.dykstrom.aoc.year2016.day01.Day01.distanceFromFirstRevisitedPosition;
 
-public class TestDay01 {
+public class Day01Test {
 
     private static final List<String> PUZZLE_INPUT = asList(
             "L4", "L1", "R4", "R1", "R1", "L3", "R5", "L5", "L2", "L3", "R2", "R1", "L4", "R5", "R4", "L2", "R1", "R3",

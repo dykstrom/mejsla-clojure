@@ -1,4 +1,4 @@
-package se.dykstrom.aoc.year2016;
+package se.dykstrom.aoc.year2016.day01;
 
 import java.util.*;
 import java.util.stream.IntStream;
