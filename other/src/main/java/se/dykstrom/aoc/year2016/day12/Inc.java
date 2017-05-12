@@ -1,35 +1,19 @@
 package se.dykstrom.aoc.year2016.day12;
 
-import java.util.Objects;
+import lombok.Value;
 
+@Value
 public class Inc implements Instruction {
 
-    private final Character register;
-
-    public Inc(Character register) {
-        this.register = register;
-    }
+    private final Register register;
 
     @Override
     public String toString() {
-        return "inc " + register;
+        return "inc " + register.toString().toLowerCase();
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Inc that = (Inc) obj;
-        return Objects.equals(this.register, that.register);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(register);
-    }
-
-    @Override
-    public void execute() {
-
+    public State execute(State state) {
+        return state.with(register, state.get(register) + 1);
     }
 }

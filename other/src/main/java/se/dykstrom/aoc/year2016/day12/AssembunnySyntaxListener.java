@@ -1,5 +1,7 @@
 package se.dykstrom.aoc.year2016.day12;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,43 +20,49 @@ public class AssembunnySyntaxListener extends AssembunnyBaseListener {
 
     @Override
     public void exitDec(DecContext ctx) {
-        if (ctx.getChildCount() > 0) {
-            instructions.add(new Dec(ctx.getChild(1).getText().charAt(0)));
+        // DEC register
+        if (ctx.getChildCount() == 2) {
+            instructions.add(new Dec(getRegister(ctx, 1)));
         }
     }
 
     @Override
     public void exitInc(IncContext ctx) {
-        if (ctx.getChildCount() > 0) {
-            instructions.add(new Inc(ctx.getChild(1).getText().charAt(0)));
+        // INC register
+        if (ctx.getChildCount() == 2) {
+            instructions.add(new Inc(getRegister(ctx, 1)));
         }
     }
 
     @Override
-    public void exitCpy_from_integer(Cpy_from_integerContext ctx) {
-        Integer source = Integer.valueOf(ctx.getChild(1).getText());
-        Character dest = ctx.getChild(2).getText().charAt(0);
-        instructions.add(new CpyFromInteger(source, dest));
+    public void exitCpyFromInteger(CpyFromIntegerContext ctx) {
+        // CPY integer register
+        instructions.add(new CpyFromInteger(getInteger(ctx, 1), getRegister(ctx, 2)));
     }
 
     @Override
-    public void exitCpy_from_register(Cpy_from_registerContext ctx) {
-        Character source = ctx.getChild(1).getText().charAt(0);
-        Character dest = ctx.getChild(2).getText().charAt(0);
-        instructions.add(new CpyFromRegister(source, dest));
+    public void exitCpyFromRegister(CpyFromRegisterContext ctx) {
+        // CPY register register
+        instructions.add(new CpyFromRegister(getRegister(ctx, 1), getRegister(ctx, 2)));
     }
 
     @Override
-    public void exitJnz_from_integer(Jnz_from_integerContext ctx) {
-        Integer source = Integer.valueOf(ctx.getChild(1).getText());
-        Integer offset = Integer.valueOf(ctx.getChild(2).getText());
-        instructions.add(new JnzFromInteger(source, offset));
+    public void exitJnzOnInteger(JnzOnIntegerContext ctx) {
+        // JNZ integer offset
+        instructions.add(new JnzOnInteger(getInteger(ctx, 1), getInteger(ctx, 2)));
     }
 
     @Override
-    public void exitJnz_from_register(Jnz_from_registerContext ctx) {
-        Character source = ctx.getChild(1).getText().charAt(0);
-        Integer offset = Integer.valueOf(ctx.getChild(2).getText());
-        instructions.add(new JnzFromRegister(source, offset));
+    public void exitJnzOnRegister(JnzOnRegisterContext ctx) {
+        // JNZ register offset
+        instructions.add(new JnzOnRegister(getRegister(ctx, 1), getInteger(ctx, 2)));
+    }
+
+    private Integer getInteger(ParserRuleContext ctx, int i) {
+        return Integer.valueOf(ctx.getChild(i).getText());
+    }
+
+    private Register getRegister(ParserRuleContext ctx, int i) {
+        return Register.from(ctx.getChild(i).getText().charAt(0));
     }
 }

@@ -37,28 +37,28 @@ dec
    ;
 
 cpy
-   : cpy_from_register
-   | cpy_from_integer
+   : cpyFromRegister
+   | cpyFromInteger
    ;
 
-cpy_from_register
+cpyFromRegister
    : CPY register register
    ;
 
-cpy_from_integer
+cpyFromInteger
    : CPY integer register
    ;
 
 jnz
-   : jnz_from_register
-   | jnz_from_integer
+   : jnzOnRegister
+   | jnzOnInteger
    ;
 
-jnz_from_register
+jnzOnRegister
    : JNZ register integer
    ;
 
-jnz_from_integer
+jnzOnInteger
    : JNZ integer integer
    ;
 

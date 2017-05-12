@@ -1,35 +1,19 @@
 package se.dykstrom.aoc.year2016.day12;
 
-import java.util.Objects;
+import lombok.Value;
 
+@Value
 public class Dec implements Instruction {
 
-    private final Character register;
-
-    public Dec(Character register) {
-        this.register = register;
-    }
+    private final Register register;
 
     @Override
     public String toString() {
-        return "dec " + register;
+        return "dec " + register.toString().toLowerCase();
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Dec that = (Dec) obj;
-        return Objects.equals(this.register, that.register);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(register);
-    }
-
-    @Override
-    public void execute() {
-
+    public State execute(State state) {
+        return state.with(register, state.get(register) - 1);
     }
 }

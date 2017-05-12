@@ -5,7 +5,10 @@ package se.dykstrom.aoc.year2016.day12;
  */
 public interface Instruction {
     /**
-     * Execute this instruction.
+     * Given {@code state}, execute this instruction, and return the modified state.
+     *
+     * @param state The state before executing the instruction.
+     * @return The state after executing the instruction.
      */
-    void execute();
+    State execute(State state);
 }

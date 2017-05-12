@@ -8,61 +8,61 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static se.dykstrom.aoc.year2016.day12.Register.*;
 
 public class AssembunnySyntaxListenerTest {
 
     @Test
     public void shouldParseOneDec() {
-        Instruction dec = new Dec('b');
-        parseAndAssert("dec b", singletonList(dec));
+        Instruction dec = new Dec(B);
+        assertEquals(singletonList(dec), parse("dec b"));
     }
 
     @Test
     public void shouldParseOneInc() {
-        Instruction inc = new Inc('c');
-        parseAndAssert("inc c", singletonList(inc));
+        Instruction inc = new Inc(C);
+        assertEquals(singletonList(inc), parse("inc c"));
     }
 
     @Test
     public void shouldParseIncDec() {
-        Instruction inc = new Inc('c');
-        Instruction dec = new Dec('d');
-        parseAndAssert("inc c\ndec d", asList(inc, dec));
+        Instruction inc = new Inc(C);
+        Instruction dec = new Dec(D);
+        assertEquals(asList(inc, dec), parse("inc c\ndec d"));
     }
 
     @Test
     public void shouldParseOneCpyFromInteger() {
-        Instruction cpy = new CpyFromInteger(5, 'b');
-        parseAndAssert("cpy 5 b", singletonList(cpy));
+        Instruction cpy = new CpyFromInteger(5, B);
+        assertEquals(singletonList(cpy), parse("cpy 5 b"));
     }
 
     @Test
     public void shouldParseOneCpyFromRegister() {
-        Instruction cpy = new CpyFromRegister('a', 'b');
-        parseAndAssert("cpy a b", singletonList(cpy));
+        Instruction cpy = new CpyFromRegister(A, B);
+        assertEquals(singletonList(cpy), parse("cpy a b"));
     }
 
     @Test
     public void shouldParseOneJnzFromInteger() {
-        Instruction jnz = new JnzFromInteger(5, -5);
-        parseAndAssert("jnz 5 -5", singletonList(jnz));
+        Instruction jnz = new JnzOnInteger(5, -5);
+        assertEquals(singletonList(jnz), parse("jnz 5 -5"));
     }
 
     @Test
     public void shouldParseOneJnzFromRegister() {
-        Instruction jnz = new JnzFromRegister('a', 0);
-        parseAndAssert("jnz a 0", singletonList(jnz));
+        Instruction jnz = new JnzOnRegister(A, 0);
+        assertEquals(singletonList(jnz), parse("jnz a 0"));
     }
 
     @Test
     public void shouldParseMixedInstructions() {
-        Instruction cpy_1 = new CpyFromInteger(1, 'c');
-        Instruction inc = new Inc('c');
-        Instruction dec = new Dec('d');
-        Instruction cpy_d = new CpyFromRegister('d', 'a');
-        Instruction jnz_a = new JnzFromRegister('a', -2);
-        parseAndAssert("cpy 1 c\ninc c\ndec d\ncpy d a\njnz a -2",
-                asList(cpy_1, inc, dec, cpy_d, jnz_a));
+        Instruction cpy_1 = new CpyFromInteger(1, C);
+        Instruction inc = new Inc(C);
+        Instruction dec = new Dec(D);
+        Instruction cpy_d = new CpyFromRegister(D, A);
+        Instruction jnz_a = new JnzOnRegister(A, -2);
+        assertEquals(asList(cpy_1, inc, dec, cpy_d, jnz_a), parse("cpy 1 c\ninc c\ndec d\ncpy d a\njnz a -2"));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -70,18 +70,19 @@ public class AssembunnySyntaxListenerTest {
         parse("jz a 5");
     }
 
+    @Test(expected = Exception.class)
+    public void shouldNotParseInvalidDecRegister() {
+        parse("dec 7");
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotParseInvalidIncRegister() {
         parse("inc h");
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = Exception.class)
     public void shouldNotParseInvalidCpyDestination() {
         parse("cpy a 5");
-    }
-
-    private void parseAndAssert(String text, List<Instruction> expectedInstructions) {
-        assertEquals(expectedInstructions, parse(text));
     }
 
     private List<Instruction> parse(String text) {
