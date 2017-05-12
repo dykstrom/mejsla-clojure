@@ -70,7 +70,7 @@ public class AssembunnySyntaxListenerTest {
         parse("jz a 5");
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = IllegalStateException.class)
     public void shouldNotParseInvalidDecRegister() {
         parse("dec 7");
     }
@@ -80,9 +80,14 @@ public class AssembunnySyntaxListenerTest {
         parse("inc h");
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = IllegalStateException.class)
     public void shouldNotParseInvalidCpyDestination() {
         parse("cpy a 5");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotParseInvalidJnzOffset() {
+        parse("jnz d a");
     }
 
     private List<Instruction> parse(String text) {
