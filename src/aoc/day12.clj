@@ -27,22 +27,24 @@
     (assoc state dest value)))
 
 (defn jnz
-  {:doc  "Jump if SOURCE is not zero. SOURCE may be an integer or a register symbol.
-If OFFSET is positive, jump forward. If OFFSET is negative, jump backward. This
-funciton assumes that the program counter has been increased by one after reading
-the instruction, so it actually jumps to PC + OFFSET - 1."
+  {:doc  "Jump if SOURCE is not zero. SOURCE may be an integer or a register symbol,
+and so may OFFSET. If OFFSET is positive, jump forward. If OFFSET is negative, jump
+backward. This function assumes that the program counter has been increased by one
+after reading the instruction, so it actually jumps to PC + OFFSET - 1."
    :test #(do
             (is= (jnz {:a 1 :b 2 :p 1} 4 3) {:a 1 :b 2 :p 3})
             (is= (jnz {:a 1 :b 2 :p 1} 4 -3) {:a 1 :b 2 :p -3})
             (is= (jnz {:a 1 :b 2 :p 1} :a 2) {:a 1 :b 2 :p 2})
-            (is= (jnz {:a 0 :b 2 :p 1} :a 2) {:a 0 :b 2 :p 1}))}
+            (is= (jnz {:a 0 :b 2 :p 1} :a 2) {:a 0 :b 2 :p 1})
+            (is= (jnz {:a 0 :b 2 :p 1} 1 :b) {:a 0 :b 2 :p 2}))}
   [state source offset]
-  (let [value (if (integer? source) source (get state source))]
+  (let [value (if (integer? source) source (get state source))
+        jump (if (integer? offset) offset (get state offset))]
     (if (= value 0)
       state
       ;; The -1 is because the PC has been incremented between
       ;; reading and executing the instruction
-      (assoc state :p (+ (get state :p) offset -1)))))
+      (assoc state :p (+ (get state :p) jump -1)))))
 
 (defn read-instruction
   {:test #(do
@@ -76,7 +78,7 @@ the instruction, so it actually jumps to PC + OFFSET - 1."
           incremented (inc state :p)]
       (recur (execute-instruction incremented instruction) instructions))))
 
-(def exmaple-input [[cpy 41 :a]
+(def example-input [[cpy 41 :a]
                     [inc :a]
                     [inc :a]
                     [dec :a]
@@ -109,7 +111,7 @@ the instruction, so it actually jumps to PC + OFFSET - 1."
 
 (defn solve-example
   []
-  (read-increment-execute initial-state exmaple-input))
+  (read-increment-execute initial-state example-input))
 
 (defn solve-puzzle-a
   []
