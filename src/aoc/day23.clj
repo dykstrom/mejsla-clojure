@@ -23,6 +23,18 @@
     [state instructions]
     [(assoc state register (- (get state register) 1)) instructions]))
 
+(defn mul
+  {:doc  "Multiply SOURC and DEST, and store the result in DEST. DEST must be a register."
+   :test #(do
+            (is= (mul {:a 5 :b 3} nil :a :b) [{:a 5 :b 15} nil])
+            (is= (mul {:a 0 :b 1 :c 7} nil :a :c) [{:a 0 :b 1 :c 0} nil]))}
+  [state instructions source dest]
+  (if (not (keyword? dest))
+    [state instructions]
+    (let [source-value (if (integer? source) source (get state source))
+          dest-value (get state dest)]
+      [(assoc state dest (* source-value dest-value)) instructions])))
+
 (defn cpy
   {:test #(do
             (is= (cpy {:a 1 :b 2 :c 3} nil 4 :b) [{:a 1 :b 4 :c 3} nil])
@@ -53,6 +65,11 @@ after reading the instruction, so it actually jumps to PC + OFFSET - 1."
       ;; reading and executing the instruction
       [(assoc state :p (+ (get state :p) jump -1)) instructions])))
 
+(defn tgl-toggle-instruction
+  [address instruction instructions]
+  (let [toggled (cons (get toggle-map (first instruction)) (vec (rest instruction)))]
+    (assoc instructions address toggled)))
+
 (defn tgl
   {:doc  "See http://adventofcode.com/2016/day/23"
    :test #(do
@@ -61,16 +78,14 @@ after reading the instruction, so it actually jumps to PC + OFFSET - 1."
             (is= (tgl {:a 0 :p 1} [[tgl 1] [dec :a] [cpy 1 :a]] 1)
                  [{:a 0 :p 1} [[tgl 1] [inc :a] [cpy 1 :a]]])
             (is= (tgl {:a 0 :p 1} [[tgl 0] [dec :a] [cpy 1 :a]] 0)
-                 [{:a 0 :p 1} [[inc 0] [dec :a] [cpy 1 :a]]])
-            )}
+                 [{:a 0 :p 1} [[inc 0] [dec :a] [cpy 1 :a]]]))}
   [state instructions offset]
   (let [relative (if (integer? offset) offset (get state offset))
         address (+ (get state :p) relative -1)
-        instruction (nth instructions address)
-        ;; TODO: If instruction is nil, ignore.
-        toggled (cons (get toggle-map (first instruction)) (vec (rest instruction)))
-        replaced (assoc instructions address toggled)]
-    [state replaced]))
+        instruction (nth instructions address nil)]
+    (if (nil? instruction)
+      [state instructions]
+      [state (tgl-toggle-instruction address instruction instructions)])))
 
 ;; Defines how function tgl toggles functions
 (def toggle-map {inc dec
@@ -129,28 +144,31 @@ after reading the instruction, so it actually jumps to PC + OFFSET - 1."
                        [dec :a]
                        [dec :a]])
 
-(def puzzle-input [[cpy 1 :a]
-                   [cpy 1 :b]
-                   [cpy 26 :d]
-                   [jnz :c 2]
-                   [jnz 1 5]
-                   [cpy 7 :c]
-                   [inc :d]
+(def puzzle-input [[cpy :a :b]
+                   [dec :b]
+                   [cpy :a :d]
+                   [cpy 0 :a]
+                   [cpy :b :c]
+                   [inc :a]
                    [dec :c]
                    [jnz :c -2]
-                   [cpy :a :c]
-                   [inc :a]
+                   [dec :d]
+                   [jnz :d -5]
                    [dec :b]
-                   [jnz :b -2]
-                   [cpy :c :b]
+                   [cpy :b :c]
+                   [cpy :c :d]
                    [dec :d]
-                   [jnz :d -6]
-                   [cpy 19 :c]
-                   [cpy 14 :d]
-                   [inc :a]
-                   [dec :d]
+                   [inc :c]
                    [jnz :d -2]
-                   [dec :c]
+                   [tgl :c]
+                   [cpy -16 :c]
+                   [jnz 1 :c]
+                   [cpy 98 :c]
+                   [jnz 86 :d]
+                   [inc :a]
+                   [inc :d]
+                   [jnz :d -2]
+                   [inc :c]
                    [jnz :c -5]])
 
 (defn solve-example-12
@@ -163,14 +181,15 @@ after reading the instruction, so it actually jumps to PC + OFFSET - 1."
 
 (defn solve-puzzle-a
   []
-  (read-increment-execute initial-state puzzle-input))
+  (let [puzzle-a-state (assoc initial-state :a 7)]
+    (read-increment-execute puzzle-a-state puzzle-input)))
 
 (defn solve-puzzle-b
   []
-  (let [puzzle-b-state (assoc initial-state :c 1)]
+  (let [puzzle-b-state (assoc initial-state :a 12)]
     (read-increment-execute puzzle-b-state puzzle-input)))
 
-;; (solve-example-12)
-;; (solve-example-23)
-;; (solve-puzzle-a)
-;; (solve-puzzle-b)
+;; (time (solve-example-12))
+;; (time (solve-example-23))
+;; (time (solve-puzzle-a))
+;; (time (solve-puzzle-b))      ;; --> 479010028
