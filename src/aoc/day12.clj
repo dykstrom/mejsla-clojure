@@ -72,11 +72,12 @@ after reading the instruction, so it actually jumps to PC + OFFSET - 1."
             (is= (read-increment-execute {:a 5 :b 3 :p 0} [[cpy 41 :a] [jnz :a 2] [inc :a] [inc :b]])
                  {:a 41 :b 4 :p 4}))}
   [state instructions]
-  (if (>= (get state :p) (count instructions))
-    state
-    (let [instruction (read-instruction state instructions)
-          incremented (inc state :p)]
-      (recur (execute-instruction incremented instruction) instructions))))
+  (let [len (count instructions)]
+    (first (drop-while #(< (get % :p) len)
+                       (iterate #(let [instruction (read-instruction % instructions)
+                                       incremented (inc % :p)]
+                                   (execute-instruction incremented instruction))
+                                state)))))
 
 (def example-input [[cpy 41 :a]
                     [inc :a]
@@ -122,6 +123,6 @@ after reading the instruction, so it actually jumps to PC + OFFSET - 1."
   (let [puzzle-b-state (assoc initial-state :c 1)]
     (read-increment-execute puzzle-b-state puzzle-input)))
 
-;; (solve-example)
-;; (solve-puzzle-a)
-;; (solve-puzzle-b)
+;; (time (solve-example))
+;; (time (solve-puzzle-a))
+;; (time (solve-puzzle-b))
