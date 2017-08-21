@@ -18,6 +18,13 @@
   [state register]
   (assoc state register (- (get state register) 1)))
 
+(defn pri
+  {:test #(do
+            (is= (pri {:a 5 :b 3} :b) {:a 5 :b 3}))}
+  [state register]
+  (println (get state register))
+  state)
+
 (defn cpy
   {:test #(do
             (is= (cpy {:a 1 :b 2 :c 3} 4 :b) {:a 1 :b 4 :c 3})
@@ -167,5 +174,6 @@ with a function followed by its arguments."
 
 ;; Run macro
 (asm cpy 3 a
+     pri a
      dec a
-     jnz a -1)
+     jnz a -2)

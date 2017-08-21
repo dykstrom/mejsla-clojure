@@ -26,6 +26,7 @@ instruction
    | dec
    | cpy
    | jnz
+   | pri
    ;
 
 inc
@@ -34,6 +35,10 @@ inc
 
 dec
    : DEC register
+   ;
+
+pri
+   : PRI register
    ;
 
 cpy
@@ -76,6 +81,10 @@ INC
 
 DEC
    : 'dec'
+   ;
+
+PRI
+   : 'pri'
    ;
 
 CPY

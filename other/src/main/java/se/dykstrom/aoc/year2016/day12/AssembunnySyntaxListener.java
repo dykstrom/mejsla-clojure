@@ -20,6 +20,14 @@ public class AssembunnySyntaxListener extends AssembunnyBaseListener {
     }
 
     @Override
+    public void exitPri(PriContext ctx) {
+        // PRI register
+        if (valid(ctx.register())) {
+            instructions.add(new Pri(getRegister(ctx, 1)));
+        }
+    }
+
+    @Override
     public void exitDec(DecContext ctx) {
         // DEC register
         if (valid(ctx.register())) {
