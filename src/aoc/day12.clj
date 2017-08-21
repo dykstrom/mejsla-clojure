@@ -126,3 +126,46 @@ after reading the instruction, so it actually jumps to PC + OFFSET - 1."
 ;; (time (solve-example))
 ;; (time (solve-puzzle-a))
 ;; (time (solve-puzzle-b))
+
+;; ---------------------------------------------------------------------
+;; Macros and support functions that make writing Assembunny code easier
+;; ---------------------------------------------------------------------
+
+(defn keywordize
+  {:doc "Make a keyword of everything that is not a function or integer."
+   :test #(do
+            (is= (keywordize '(inc a)) '(inc :a))
+            (is= (keywordize '(cpy 42 a jnz b -2)) '(cpy 42 :a jnz :b -2)))}
+  [code]
+  (map (fn [x]
+         (cond (clojure.test/function? x) x
+               (integer? x) x
+               :else (keyword x)))
+       code))
+
+(defn partition-by-function
+  {:doc "Partition sequence CODE into several sequences that start
+with a function followed by its arguments."
+   :test #(do
+            (is= (partition-by-function '(inc :a)) '((inc :a)))
+            (is= (partition-by-function '(cpy 42 :a jnz :b -2))
+                 '((cpy 42 :a) (jnz :b -2))))}
+  [code]
+  (let [toggle (atom true)]
+    (partition-by (fn [x]
+                    (when (clojure.test/function? x)
+                      (reset! toggle (not @toggle)))
+                    @toggle)
+                  code)))
+
+(defmacro asm
+  "Transform and run a sequence of Assembunny instructions."
+  [& code]
+  `(read-increment-execute
+     initial-state
+     ~(vec (map vec (partition-by-function (keywordize code))))))
+
+;; Run macro
+(asm cpy 3 a
+     dec a
+     jnz a -1)

@@ -70,8 +70,19 @@ public class Day12 {
         System.out.println("Puzzle B, final state: " + state);
     }
 
+    private static void asm(String code) {
+        List<Instruction> instructions = parse(code);
+        Cpu cpu = new Cpu(INITIAL_STATE);
+        State state = cpu.execute(instructions);
+        System.out.println(state);
+    }
+
     public static void main(String[] args) {
-        solvePuzzleA();
-        solvePuzzleB();
+        asm("cpy 3 a" +
+                "dec a" +
+                "jnz a -1");
+
+//        solvePuzzleA();
+//        solvePuzzleB();
     }
 }
