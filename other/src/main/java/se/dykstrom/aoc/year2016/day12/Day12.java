@@ -78,11 +78,8 @@ public class Day12 {
     }
 
     public static void main(String[] args) {
-        asm("cpy 3 a" +
-                "dec a" +
+        asm("cpy 3 a\n" +
+                "dec a\n" +
                 "jnz a -1");
-
-//        solvePuzzleA();
-//        solvePuzzleB();
     }
 }
